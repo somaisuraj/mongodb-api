@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+// not models it is model(singular)
+// Todo is constructor function so capital T
 var Todo = mongoose.model('todo', {
   text: {
     type: String,
@@ -17,4 +19,4 @@ var Todo = mongoose.model('todo', {
   }
 });
 
-module.exports = {Todo};
+module.exports = {Todo};// es6 feature todo: todo
