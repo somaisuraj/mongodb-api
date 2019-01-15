@@ -4,8 +4,17 @@ const request = require('supertest');
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 
+const todos = [{
+  text: 'first todo'
+}, {
+  text: 'second todo'
+}];//this is seed data because beforeEach will run before other function
+// and will delete all data.
+
 beforeEach((done) => {
-  Todo.remove({}).then(() => done());
+  Todo.remove({}).then(() => {
+    return Todo.insertMany(todos);//with retrun we can't call other then();
+  }).then(() => done());
 });
 
 describe('POST /todos', () => {
@@ -22,7 +31,7 @@ describe('POST /todos', () => {
          if (e) {
            return done(e);
          }
-         Todo.find().then((todo) => {
+         Todo.find({text}).then((todo) => {
            expect(todo.length).toBe(1);
            expect(todo[0].text).toBe(text);
            done();
@@ -42,9 +51,22 @@ describe('POST /todos', () => {
           return done(e);
         }
         Todo.find().then((todo) => {
-          expect(todo.length).toBe(0);
+          expect(todo.length).toBe(2);
           done();
         }).catch((e) => done(e));
       })
   });
+});
+
+describe('GET/todos', () => {
+   it('should get all todos', (done) => {
+     request(app)
+     .get('/todos')
+     .expect(200)
+     .expect((res) => {
+       expect(res.body.todos.length).toBe(2);
+     })
+     .end(done);
+     // we are not doing async function so end is called with done;
+   });
 });
