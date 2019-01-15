@@ -38,6 +38,14 @@ app.post('/users',(req, res) => {
   });
 });
 
+app.get('/todos', (req, res) => {
+  Todo.find().then((todos) => {
+    res.send({todos});
+  }, (err) => {
+    res.status(400).send(e);
+  })
+});
+
 app.listen(3000, () => {
   console.log('server running at 3000')
 });
