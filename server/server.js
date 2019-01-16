@@ -27,7 +27,7 @@ app.post('/todos', (req, res) => {
 
 app.post('/users',(req, res) => {
   var user = new User({
-    user: req.body.name,
+    user: req.body.user,
     email: req.body.email
   });
 
@@ -38,6 +38,14 @@ app.post('/users',(req, res) => {
   });
 });
 
+app.get('/users', (req, res) => {
+   User.find().then((users) => {
+     res.send({users});
+   }, (e) => {
+     res.status(400).send(e);
+   });
+});
+
 app.get('/todos', (req, res) => {
   Todo.find().then((todos) => {
     res.send({todos});
@@ -45,6 +53,8 @@ app.get('/todos', (req, res) => {
     res.status(400).send(e);
   })
 });
+
+
 
 app.listen(3000, () => {
   console.log('server running at 3000')

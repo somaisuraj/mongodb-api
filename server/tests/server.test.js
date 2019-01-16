@@ -3,6 +3,7 @@ const request = require('supertest');
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
+const {User} = require('./../models/users');
 
 const todos = [{
   text: 'first todo'
@@ -10,6 +11,14 @@ const todos = [{
   text: 'second todo'
 }];//this is seed data because beforeEach will run before other function
 // and will delete all data.
+const users = [{
+  name: 'hunter',
+  email: 'somai.suraj@yahoo.com'
+}, {
+  name:'surya',
+  email: 'surya@gmail.com'
+}];
+
 
 beforeEach((done) => {
   Todo.remove({}).then(() => {
@@ -58,6 +67,17 @@ describe('POST /todos', () => {
   });
 });
 
+describe('GET/users', () => {
+   it('should get all users from get user route', (done) => {
+     request(app)
+     .get('/users')
+     .expect(200)
+     .expect((res) => {
+       expect(res.body.users.length).toBe(2);
+     })
+     .end(done);
+   });
+});
 describe('GET/todos', () => {
    it('should get all todos', (done) => {
      request(app)
