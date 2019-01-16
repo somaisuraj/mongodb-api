@@ -7,6 +7,7 @@ var bodyParser = require('body-parser');
 const {mongoose} = require('./db/mongoose.js');
 const {Todo} = require('./models/todo.js');
 const {User} = require('./models/users.js');
+const {ObjectID} = require('mongodb');
 
 const app = express();
 app.use(bodyParser.json());
@@ -52,6 +53,23 @@ app.get('/todos', (req, res) => {
   }, (err) => {
     res.status(400).send(e);
   })
+});
+
+//:id is the syntax for user input id or any key . req keeps all info  so req.params will get the user input value
+app.get('/todos/:id', (req, res) => {
+  var id = req.params.id;
+  if (!ObjectID.isValid(id)) {//ObjectId is imported from mongodb not included so don't forget to declare.
+    return res.status(404).send();//here id in invalid means its not thr right format.
+  }
+  Todo.findById(id).then((todo) => {
+    if(!todo) { // if id is valid but doesnot contain the required
+      return res.status(404).send(); // return is used to stop from any furthur code execution.
+    }
+    res.status(200).send({todo}); //returning in object means flexibility than array .
+  }).catch((err) => { // this is done if the above promise chain gets any error while resolving the promises. But-
+    res.status(400).send();//-need to findout more differences between catch and normal error method.
+  });;
+
 });
 
 
