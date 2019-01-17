@@ -59,10 +59,10 @@ app.get('/todos', (req, res) => {
 app.get('/todos/:id', (req, res) => {
   var id = req.params.id;
   if (!ObjectID.isValid(id)) {//ObjectId is imported from mongodb not included so don't forget to declare.
-    return res.status(404).send();//here id in invalid means its not thr right format.
+    return res.status(500).send();//here id in invalid means its not thr right format.
   }
   Todo.findById(id).then((todo) => {
-    if(!todo) { // if id is valid but doesnot contain the required
+    if(!todo) { // if id is valid but doesnot contain data
       return res.status(404).send(); // return is used to stop from any furthur code execution.
     }
     res.status(200).send({todo}); //returning in object means flexibility than array .
