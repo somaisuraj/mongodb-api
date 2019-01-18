@@ -73,6 +73,21 @@ app.get('/todos/:id', (req, res) => {
 
 });
 
+app.delete('/users/:id', (req, res) => {
+  var id = req.params.id;
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send('Invalid ID');
+  }
+  User.findByIdAndDelete(id).then((doc) => {
+    if (!doc) {
+      return res.status(404).send('Doc not Found');
+    }
+    res.status(200).send(doc);
+  }, (err) => {
+    res.status(400).send('Unknown error', err);
+  });
+
+});
 
 
 app.listen(port, () => {
