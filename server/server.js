@@ -8,6 +8,7 @@ const {mongoose} = require('./db/mongoose.js');
 const {Todo} = require('./models/todo.js');
 const {User} = require('./models/users.js');
 const {ObjectID} = require('mongodb');
+const port = process.env.PORT || 3000;
 
 const app = express();
 app.use(bodyParser.json());
@@ -74,8 +75,8 @@ app.get('/todos/:id', (req, res) => {
 
 
 
-app.listen(3000, () => {
-  console.log('server running at 3000')
+app.listen(port, () => {
+  console.log(`started at ${port}`);
 });
 
 module.exports = {app};
