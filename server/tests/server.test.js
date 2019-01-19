@@ -2,6 +2,7 @@ const expect = require('expect');
 const request = require('supertest');
 const {ObjectID} = require('mongodb');
 
+
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 const {User} = require('./../models/users');
@@ -13,13 +14,16 @@ const todos = [{
   _id: new ObjectID(),
   text: 'second todo'
 }];//this is seed data because beforeEach will run before other function
-// and will delete all data.
+and will delete all data.
 const users = [{
-  name: 'hunter',
-  email: 'somai.suraj@yahoo.com'
+  _id: new ObjectID(),
+  user: 'hunter',
+  email:'hunter@gmail.com'
+
 }, {
-  name:'surya',
-  email: 'surya@gmail.com'
+  _id: new ObjectID(),
+  user :'surya',
+  email: 'surya@yahoo.com'
 }];
 
 
@@ -118,8 +122,46 @@ describe('GET /todos/:id', () => {
   it('should retun 404 for non-valid id', (done) => {
          // var id = '123';  we can define var also or we can  write/todos/123 directly since we want to have invalid id.
          request(app)
-         .get(`/todos/${id}`)
+         .get('/todos/id')
          .expect(500)
          .end(done);
   });
+});
+
+describe('DELETE users/:id', () => {
+    it('should delete the user by id', (done) => {
+      var id = users[0]._id.toHexString();
+      request(app)
+      .delete(`/users/${id}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.doc._id).toBe(id);
+      })
+      .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+          // we search in User model because User is the variable that stores users data .
+          User.findById(id).then((doc) => {
+            expect(doc).toNotExist();
+            done();
+          }).catch((err) => done(err));
+
+    });
+  });
+
+    it('should return 404 if user not found', (done) => {
+      var id = new ObjectID().toHexString();
+      request(app)
+      .delete(`/users/${id}`)
+      .expect(404)
+      .end(done);
+    });
+
+    it('should return 404 if id is invalid', (done) => {
+      request(app)
+      .delete('/users/id')
+      .expect(404)
+      .end(done);
+    });
 });

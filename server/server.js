@@ -82,8 +82,8 @@ app.delete('/users/:id', (req, res) => {
     if (!doc) {
       return res.status(404).send('Doc not Found');
     }
-    res.status(200).send(doc);
-  }, (err) => {
+    res.status(200).send({doc});
+  }).catch((err) => {
     res.status(400).send('Unknown error', err);
   });
 
