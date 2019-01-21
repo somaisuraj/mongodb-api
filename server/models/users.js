@@ -11,7 +11,14 @@ var User = mongoose.model('user', {
     required: true,
     minlength: 5,
     trim: true
-
+  },
+  completed: {
+    type: Boolean,
+    default: false
+  },
+  completedAt: {
+    type: Number,
+    default: null
   }
 });
 

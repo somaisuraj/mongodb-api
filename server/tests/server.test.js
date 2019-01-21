@@ -10,11 +10,14 @@ const {User} = require('./../models/users');
 const todos = [{
   _id: new ObjectID(),
   text: 'first todo'
+
 }, {
   _id: new ObjectID(),
-  text: 'second todo'
+  text: 'second todo',
+  completed: true,
+  completedAt: 123
 }];//this is seed data because beforeEach will run before other function
-and will delete all data.
+//and will delete all data.
 const users = [{
   _id: new ObjectID(),
   user: 'hunter',
@@ -33,8 +36,14 @@ beforeEach((done) => {
   }).then(() => done());
 });
 
+beforeEach((done) => {
+  User.remove({}).then(() => {
+    return User.insertMany(users);
+  }).then(() => done());
+});
+
 describe('POST /todos', () => {
-  it('should create new todo',  (done) => {
+  it('should create new todo', (done) => {
        var text = 'test todo text';
        request(app)
        .post('/todos')
@@ -130,7 +139,7 @@ describe('GET /todos/:id', () => {
 
 describe('DELETE users/:id', () => {
     it('should delete the user by id', (done) => {
-      var id = users[0]._id.toHexString();
+      let id = users[0]._id.toHexString();
       request(app)
       .delete(`/users/${id}`)
       .expect(200)
@@ -143,7 +152,7 @@ describe('DELETE users/:id', () => {
           }
           // we search in User model because User is the variable that stores users data .
           User.findById(id).then((doc) => {
-            expect(doc).toNotExist();
+            expect(doc).toBeNull();
             done();
           }).catch((err) => done(err));
 
@@ -164,4 +173,24 @@ describe('DELETE users/:id', () => {
       .expect(404)
       .end(done);
     });
+});
+
+describe('PATCH todos/:id', () => {
+   it('should update the todo', (done) => {
+       var id = todos[0]._id.toHexString()
+       var text = "this text is required to test update";
+       request(app)
+       .patch(`/todos/${id}`)
+       .send({// testing for update and no updater  data . so above text is created.
+         completed: true, //send sends the data to the server to update.
+         text
+       })
+       .expect(200)
+       .expect((res) => { //this res is available because res.send({todo}) gives us res and  becomes res.body: todo; so res.body.todo
+            expect(res.body.todo.text).toBe(text);
+            expect(res.body.todo.completed).toBe(true);
+            expect(typeof res.body.todo.completedAt).toBe('number');
+       })
+       .end(done);
+   });
 });

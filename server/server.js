@@ -1,5 +1,8 @@
+require('./config/config');
+
 var express = require('express');
 var bodyParser = require('body-parser');
+var _ = require('lodash');
 
 // this is object deststructuring variable like require(mongoose.js) = {mongoose: 'somedata'}--
 // so taking that mongoose and declaring as variable mongoose = (source of the data i.e moongoose.js)--
@@ -8,12 +11,12 @@ const {mongoose} = require('./db/mongoose.js');
 const {Todo} = require('./models/todo.js');
 const {User} = require('./models/users.js');
 const {ObjectID} = require('mongodb');
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 const app = express();
 app.use(bodyParser.json());
 
-// new  is creating the model intance of Todo varaiable which is model in source file
+// new  is creating the model instance of Todo varaiable which is model in source file
 app.post('/todos', (req, res) => {
   var todo = new Todo({
     text: req.body.text
@@ -60,7 +63,7 @@ app.get('/todos', (req, res) => {
 app.get('/todos/:id', (req, res) => {
   var id = req.params.id;
   if (!ObjectID.isValid(id)) {//ObjectId is imported from mongodb not included so don't forget to declare.
-    return res.status(500).send();//here id in invalid means its not thr right format.
+    return res.status(500).send();//invalid means that the id  is not in correct format.
   }
   Todo.findById(id).then((todo) => {
     if(!todo) { // if id is valid but doesnot contain data
@@ -87,6 +90,56 @@ app.delete('/users/:id', (req, res) => {
     res.status(400).send('Unknown error', err);
   });
 
+});
+
+app.patch('/todos/:id', (req , res) => {
+   var id = req.params.id;
+
+   // _.pick lets the user only update the data inside []
+   // body is getting data from req.body and picking only text and completed property to be available to user
+   var body = _.pick(req.body, ['text', 'completed']);
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send('Invalid ID');
+  }
+  // isBoolean is checking the result for true or false and body.completed means boolean result true(if exists)
+  if (_.isBoolean(body.completed) && body.completed) {
+         body.completedAt = new Date().getTime();
+    } else {
+      body.completedAt = null; // setting to null or resetting the previous data
+      body.completed = false;
+    }
+  Todo.findByIdAndUpdate(id,{$set: body},{new: true} //this means return original false i.e returns the updated object.
+  ).then((todo) => {
+     if (!todo) {
+        return res.status(404).send('No todo for the given id');
+     } res.send({todo});
+  }).catch((err) => {
+    res.status(400).send(err);
+  });
+
+});
+app.patch('/users/:id', (req, res) => {
+  var id = req.params.id;
+  var body = _.pick(req.body, ['user','email','completed']);
+  if (!ObjectID.isValid(id)) {
+        return res.status(404).send('Invalid ID');
+  }
+  if (_.isBoolean(body.completed) && body.completed) {
+       body.completedAt = new Date();
+
+  } else {
+    body.completedAt = null;
+    body.complete = false;
+  }
+  //this below code should be written outside if statement, otherwise it will run after completed is set true.
+  User.findByIdAndUpdate(id, {$set: body}, {new: true}).then((user) => {
+      if (!user) {
+          return res.status(404).send('user not found');
+      }res.status(200).send({user});
+  }).catch((err) => {
+    res.status(400).send(err);
+  });
 });
 
 
