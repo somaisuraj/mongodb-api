@@ -31,17 +31,18 @@ app.post('/todos', (req, res) => {
 });
 
 app.post('/users',(req, res) => {
-  var user = new User({
-    user: req.body.user,
-    email: req.body.email
-  });
+ var body = _.pick(req.body, ['user', 'email', 'password']);
+ var user = new User(body); //we already defined the parameter for the object constructor
 
-  user.save().then((doc) => {
-    res.status(200).send(doc);
-  }, (e) => {
-    res.status(400).send(e);
-  });
-});
+ user.save().then(() => {
+  return user.generateAuthToken();
+ }).then((token) => {
+   res.header('x-auth', token).send(user);
+ }).catch((err) => {
+   res.status(400).send(err);
+ });
+ });
+
 
 app.get('/users', (req, res) => {
    User.find().then((users) => {
