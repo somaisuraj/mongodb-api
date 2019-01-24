@@ -51,9 +51,26 @@ return user.save().then(() => { //this is done to get user and token variable
   return token;
 });
 };
+UserSchema.statics.findByToken = function (token) {
+  let User = this;//this is model function so this means model
+  let decoded;
+
+  try {
+   decoded = jwt.verify(token, 'abc123'); //it return an object.
+ } catch(e) {
+   return //new Promise((resolve, reject) => {
+      Promise.reject()  //   reject();  smaller version of reject promise
+   // });
+  }
+  return User.findOne({// this findOne returns a promise so this function is returning-
+    _id:decoded._id,   //- returning whole User.findOne to chain in server.js line 49.
+    'tokens.token':token,//we are using quotes because there is dot or nested object
+    'tokens.access':'auth'
+  });
+};
 
 
 
-var User = mongoose.model('user', UserSchema);
+var User = mongoose.model('user', UserSchema); // mongoose.model takes('name for the collection', {object which is UserSchema});
 
 module.exports = {User};
