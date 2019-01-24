@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 var UserSchema = new mongoose.Schema( {
   user: {
@@ -69,7 +70,19 @@ UserSchema.statics.findByToken = function (token) {
   });
 };
 
-
+UserSchema.pre('save', function (next) {
+  var user = this;
+  if (user.isModified('password')) {
+      bcrypt.genSalt(10, (err, salt) => {//here you write any numbers high number means more secure
+        bcrypt.hash(user.password, salt, (err, hash) => {
+          user.password = hash;
+          next();
+        })
+      });
+  } else {
+    next();
+  }
+});
 
 var User = mongoose.model('user', UserSchema); // mongoose.model takes('name for the collection', {object which is UserSchema});
 
