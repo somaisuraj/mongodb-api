@@ -3,6 +3,7 @@ require('./config/config');
 var express = require('express');
 var bodyParser = require('body-parser');
 var _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 // this is object deststructuring variable like require(mongoose.js) = {mongoose: 'somedata'}--
 // so taking that mongoose and declaring as variable mongoose = (source of the data i.e moongoose.js)--
@@ -44,10 +45,32 @@ app.post('/users',(req, res) => {
  });
  });
 
+ app.post('/users/login', (req, res) => {
+   // var email = req.body.email;
+   // var password = req.body.password;
+   var body = _.pick(req.body, ['email', 'password']);//short form of var emai, password
+   //this pick means taking the email and password from request.body and request.body is the property we make while post the data in postman
+
+    // res.send(body); this is just like console.log for postman this checks the desired picked body works or not
+
+   User.findByCredentials(body.email, body.password).then((user) => {
+    return user.generateAuthToken().then((token) => {
+      res.header('x-auth', token).send(user);
+    });
+   }).catch((err) => {//  this will grab the error from  on going promises and send send that response with status 400 and error.
+      res.status(400).send();
+   });
+
+
+
+ });
+
  app.get('/users/me', authenticate , (req, res) => {
   res.send(req.user);
 
  });
+
+
 
 
 app.get('/users', (req, res) => {

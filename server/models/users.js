@@ -7,7 +7,6 @@ const bcrypt = require('bcryptjs');
 var UserSchema = new mongoose.Schema( {
   user: {
     type: String,
-    required: true,
     minlength: 1,
     unique: true
   },
@@ -67,6 +66,25 @@ UserSchema.statics.findByToken = function (token) {
     _id:decoded._id,   //- returning whole User.findOne to chain in server.js line 49.
     'tokens.token':token,//we are using quotes because there is dot or nested object
     'tokens.access':'auth'
+  });
+};
+
+UserSchema.statics.findByCredentials = function(email, password) {
+  let User = this;
+
+  return User.findOne({email}).then((user) => {
+     if (!user) {
+       return Promise.reject();// this need more clarification
+     }
+     return new Promise((resolve, reject) => {
+       bcrypt.compare(password, user.password, (err, res) => {
+            if (res) {
+              resolve(user);
+            }else {
+              reject();
+            }
+       });
+     });
   });
 };
 
