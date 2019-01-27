@@ -6,41 +6,10 @@ const {ObjectID} = require('mongodb');
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 const {User} = require('./../models/users');
+const {todos, populateTodos,users, populateUsers} = require('./seed/seed');
 
-const todos = [{
-  _id: new ObjectID(),
-  text: 'first todo'
-
-}, {
-  _id: new ObjectID(),
-  text: 'second todo',
-  completed: true,
-  completedAt: 123
-}];//this is seed data because beforeEach will run before other function
-//and will delete all data.
-const users = [{
-  _id: new ObjectID(),
-  user: 'hunter',
-  email:'hunter@gmail.com'
-
-}, {
-  _id: new ObjectID(),
-  user :'surya',
-  email: 'surya@yahoo.com'
-}];
-
-
-beforeEach((done) => {
-  Todo.remove({}).then(() => {
-    return Todo.insertMany(todos);//with retrun we can't call other then();
-  }).then(() => done());
-});
-
-beforeEach((done) => {
-  User.remove({}).then(() => {
-    return User.insertMany(users);
-  }).then(() => done());
-});
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
 describe('POST /todos', () => {
   it('should create new todo', (done) => {
@@ -56,9 +25,9 @@ describe('POST /todos', () => {
          if (e) {
            return done(e);
          }
-         Todo.find({text}).then((todo) => {
-           expect(todo.length).toBe(1);
-           expect(todo[0].text).toBe(text);
+         Todo.find().then((todos) => {
+           expect(todos.length).toBe(3);
+           expect(todos[2].text).toBe(text);
            done();
          }).catch((e) => {
            done(e);
@@ -193,4 +162,97 @@ describe('PATCH todos/:id', () => {
        })
        .end(done);
    });
+});
+
+describe('GET /users/me', () => {
+  it('should return user if authenticated', (done) => {
+    request(app)
+    .get('/users/me')
+    .set('x-auth', users[0].tokens[0].token)//setting the header with name and value
+                   // tokens is array with length 1 and at index 0. so tokens[0].token
+    .expect(200)
+    .expect((res) => {
+        expect(res.body._id).toBe(users[0]._id.toHexString());
+        console.log(res.body);
+        expect(res.body.user).toBe(users[0].user);//this was showing undefined because in user schema i had only chose id and email -
+        expect(res.body.email).toBe(users[0].email);//-so after adding user parameter in pick() then it worked like charm
+    })
+    .end(done);
+  });
+  it('should return 401 if not authenticated', (done) => {
+      request(app)
+      .get('/users/me')
+      .expect(500)
+      .expect((res) => {
+        expect(res.body).toEqual({});
+      })
+      .end(done);
+  });
+
+});
+
+describe('POST /users', () => {
+  it('should create user', (done) => {
+     var user = 'suraj';
+     var email = 'somai.suraj@yahoo.com';
+     var password = '123abc';
+
+     request(app)
+     .post('/users')
+     .send({user, email, password})
+     .expect(200)
+     .expect((res) => {
+       expect(res.headers['x-auth']).toBeTruthy();
+       expect(res.body._id).toBeTruthy();
+       expect(res.body.email).toBe(email);
+       expect(res.body.user).toBe(user);
+
+
+     })
+     .end((err) => {
+       if (err) {
+         return done(err);
+       }
+       User.findOne({email}).then((user) => {
+         expect(user).toBeTruthy();
+         expect(user.password).not.toBe(password);
+         done();//dont't forget to pass done
+       });
+
+     });
+  });
+  it('should return validation error', (done) => {
+      var user = 'hunter';
+      var email = 'surajsomai.com';
+      var password = 'abc123';
+      request(app)
+      .post('/users')
+      .send({user, email, password})
+      .expect(400)
+      .end(done);
+      // no need to do end(() => {}) because expect 400 is there and all.
+    });
+  it('should not create user if email is in use', (done) => {
+    request(app)
+    .post('/users')
+    .send({
+      user: 'surajj',
+      email: users[0].email,
+      password: '123abc'
+    })
+    .expect(400)
+    .end(done);
+
+  });
+  it('should not create user if username is in use', (done) => {
+    request(app)
+    .post('/users')
+    .send({
+      user:users[0].user,
+      email: "somai.surajjjj@gmail.com",
+      password: '234567jdj'
+    })
+    .expect(400)
+    .end(done);
+  });
 });
