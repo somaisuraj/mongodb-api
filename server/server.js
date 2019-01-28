@@ -60,10 +60,16 @@ app.post('/users',(req, res) => {
    }).catch((err) => {//  this will grab the error from  on going promises and send send that response with status 400 and error.
       res.status(400).send();
    });
-
-
-
  });
+
+
+app.delete('/users/me/token',authenticate, (req, res) => {
+     req.user.removeToken(req.token).then(() => {
+       res.status(200).send();
+     },() => {
+       res.status(400).send();
+     }),
+});
 
  app.get('/users/me', authenticate , (req, res) => {
   res.send(req.user);
