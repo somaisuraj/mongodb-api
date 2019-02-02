@@ -5,7 +5,8 @@ const {Todo} = require('./../../models/todo');
 const {User} = require('./../../models/users');
 
 
-let userOneId = new ObjectID();//created to use for sign token
+let userOneId = new ObjectID();
+let userTwoId = new ObjectID();//created to use for sign token
 const users = [{
   _id: userOneId,
   user: 'hunter',
@@ -16,22 +17,28 @@ const users = [{
     token: jwt.sign({_id: userOneId, access:'auth'}, 'abc123').toString()
 }]
 }, {
-  _id: new ObjectID(),
+  _id: userTwoId,
   user :'surya',
   email: 'surya@yahoo.com',
-  password:'abc1234'
+  password:'abc1234',
+  tokens: [{
+    access:'auth',
+    token: jwt.sign({_id: userTwoId, access:'auth'}, 'abc123').toString()
+}]
 
   }];
 
 const todos = [{
   _id: new ObjectID(),
-  text: 'first todo'
+  text: 'first todo',
+  _creator: userOneId //assiginig the user id
 
 }, {
   _id: new ObjectID(),
   text: 'second todo',
   completed: true,
-  completedAt: 123
+  completedAt: 123,
+  _creator: userTwoId
 }];//this is seed data because beforeEach will run before other function
 //and will delete all data.
 const populateTodos = (done) => {

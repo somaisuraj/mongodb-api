@@ -35,7 +35,7 @@ var UserSchema = new mongoose.Schema( {
 });
 UserSchema.methods.toJSON = function () {
   var user = this;
-  var userObject =user.toObject();// this takes mongoose variable to regular object
+  var userObject =user.toObject();// this takes and makes mongoose variable to regular object
   return _.pick(userObject, ['_id','user', 'email']);
 };
 
@@ -55,10 +55,10 @@ return user.save().then(() => { //this is done to get user and token variable
 UserSchema.methods.removeToken = function(token) {
    let user = this;
    return user.update({
-     $pull: { //$pull is moongoose for pulling or deleting
+     $pull: { //$pull is from moongoose library for pulling or deleting
        tokens: {token}//es6 token: token
      }
-   })
+   });
 };
 
 UserSchema.statics.findByToken = function (token) {
